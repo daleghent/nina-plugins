@@ -1,2 +1,0 @@
-ap-logo.jpg filter=lfs diff=lfs merge=lfs -text
-U4APMscreen1.png filter=lfs diff=lfs merge=lfs -text
