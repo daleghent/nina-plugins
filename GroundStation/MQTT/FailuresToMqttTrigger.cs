@@ -10,9 +10,7 @@
 
 #endregion "copyright"
 
-using MQTTnet;
-using MQTTnet.Client.Disconnecting;
-using MQTTnet.Client.Options;
+using DaleGhent.NINA.GroundStation.Mqtt;
 using Newtonsoft.Json;
 using NINA.Core.Enum;
 using NINA.Core.Model;
@@ -24,9 +22,7 @@ using NINA.Sequencer.Validations;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -39,20 +35,14 @@ namespace DaleGhent.NINA.GroundStation.FailuresToMqttTrigger {
     [Export(typeof(ISequenceTrigger))]
     [JsonObject(MemberSerialization.OptIn)]
     public class FailuresToMqttTrigger : SequenceTrigger, IValidatable {
+        private MqttCommon mqtt;
         private ISequenceItem previousItem;
         private string topic;
 
         [ImportingConstructor]
         public FailuresToMqttTrigger() {
-            MqttBrokerHost = Properties.Settings.Default.MqttBrokerHost;
-            MqttBrokerPort = Properties.Settings.Default.MqttBrokerPort;
-            MqttBrokerUseTls = Properties.Settings.Default.MqttBrokerUseTls;
-            MqttUsername = Security.Decrypt(Properties.Settings.Default.MqttUsername);
-            MqttPassword = Security.Decrypt(Properties.Settings.Default.MqttPassword);
-            MqttClientId = Properties.Settings.Default.MqttClientId;
+            mqtt = new MqttCommon();
             Topic = Properties.Settings.Default.MqttDefaultTopic;
-
-            Properties.Settings.Default.PropertyChanged += SettingsChanged;
         }
 
         public FailuresToMqttTrigger(FailuresToMqttTrigger copyMe) : this() {
@@ -76,52 +66,15 @@ namespace DaleGhent.NINA.GroundStation.FailuresToMqttTrigger {
                 error_list = new List<ErrorItems>()
             };
 
-            if (PreviousItemIssues.Count > 0) {
-                foreach (var e in PreviousItemIssues) {
-                    itemInfo.error_list.Add(new ErrorItems { reason = e, });
-                }
+            foreach (var e in PreviousItemIssues) {
+                itemInfo.error_list.Add(new ErrorItems { reason = e, });
             }
 
-            Logger.Trace(JsonConvert.SerializeObject(itemInfo));
+            string payload = JsonConvert.SerializeObject(itemInfo);
 
-            var factory = new MqttFactory();
-            var mqttClient = factory.CreateMqttClient();
+            Logger.Trace($"{this}: {payload}");
 
-            var options = new MqttClientOptionsBuilder()
-                .WithClientId(MqttClientId)
-                .WithTcpServer(MqttBrokerHost, MqttBrokerPort)
-                .WithCleanSession();
-
-            if (!string.IsNullOrEmpty(MqttUsername) && !string.IsNullOrWhiteSpace(MqttUsername)) {
-                options.WithCredentials(MqttUsername, MqttPassword);
-            }
-
-            if (MqttBrokerUseTls) {
-                options.WithTls();
-            }
-
-            var opts = options.Build();
-
-            var payload = new MqttApplicationMessageBuilder()
-                .WithTopic(Topic)
-                .WithPayload(JsonConvert.SerializeObject(itemInfo))
-                .WithExactlyOnceQoS()
-                .WithRetainFlag()
-                .Build();
-
-            var discopts = new MqttClientDisconnectOptions();
-
-            Logger.Debug("MqttTrigger: Pushing message");
-
-            try {
-                await mqttClient.ConnectAsync(opts, ct);
-                await mqttClient.PublishAsync(payload, ct);
-                await mqttClient.DisconnectAsync(discopts, ct);
-                mqttClient.Dispose();
-            } catch (Exception ex) {
-                Logger.Error($"Error sending to MQTT broker: {ex.Message}");
-                throw;
-            }
+            await mqtt.PublishMessge(Topic, payload, ct);
         }
 
         public override bool ShouldTrigger(ISequenceItem previousItem, ISequenceItem nextItem) {
@@ -152,15 +105,7 @@ namespace DaleGhent.NINA.GroundStation.FailuresToMqttTrigger {
         public IList<string> Issues { get; set; } = new ObservableCollection<string>();
 
         public bool Validate() {
-            var i = new List<string>();
-
-            if (string.IsNullOrEmpty(MqttBrokerHost) || string.IsNullOrWhiteSpace(MqttBrokerHost)) {
-                i.Add("MQTT broker hostname or IP not configured");
-            }
-
-            if (string.IsNullOrEmpty(MqttClientId) || string.IsNullOrWhiteSpace(MqttClientId)) {
-                i.Add("MQTT client ID is invalid!");
-            }
+            var i = new List<string>(mqtt.ValidateSettings());
 
             if (i != Issues) {
                 Issues = i;
@@ -185,12 +130,6 @@ namespace DaleGhent.NINA.GroundStation.FailuresToMqttTrigger {
         }
 
         private IList<string> PreviousItemIssues { get; set; } = new List<string>();
-        private string MqttBrokerHost { get; set; }
-        private ushort MqttBrokerPort { get; set; }
-        private bool MqttBrokerUseTls { get; set; }
-        private string MqttUsername { get; set; }
-        private string MqttPassword { get; set; }
-        private string MqttClientId { get; set; }
 
         private class PreviousItem {
             public string name { get; set; }
@@ -201,29 +140,6 @@ namespace DaleGhent.NINA.GroundStation.FailuresToMqttTrigger {
 
         public class ErrorItems {
             public string reason { get; set; }
-        }
-
-        private void SettingsChanged(object sender, PropertyChangedEventArgs e) {
-            switch (e.PropertyName) {
-                case "MqttBrokerHost":
-                    MqttBrokerHost = Properties.Settings.Default.MqttBrokerHost;
-                    break;
-                case "MqttBrokerPort":
-                    MqttBrokerPort = Properties.Settings.Default.MqttBrokerPort;
-                    break;
-                case "MqttBrokerUseTls":
-                    MqttBrokerUseTls = Properties.Settings.Default.MqttBrokerUseTls;
-                    break;
-                case "MqttUsername":
-                    MqttUsername = Security.Decrypt(Properties.Settings.Default.MqttUsername);
-                    break;
-                case "MqttPassword":
-                    MqttPassword = Security.Decrypt(Properties.Settings.Default.MqttPassword);
-                    break;
-                case "MqttClientId":
-                    MqttClientId = Properties.Settings.Default.MqttClientId;
-                    break;
-            }
         }
     }
 }

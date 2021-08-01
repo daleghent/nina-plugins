@@ -51,6 +51,7 @@
     <Compile Include="MQTT\FailuresToMqttTriggerTemplate.xaml.cs">
       <DependentUpon>FailuresToMqttTriggerTemplate.xaml</DependentUpon>
     </Compile>
+    <Compile Include="MQTT\MqttCommon.cs" />
     <Compile Include="MQTT\SendToMqtt.cs" />
     <Compile Include="MQTT\SendToMqttTemplate.xaml.cs">
       <DependentUpon>SendToMqttTemplate.xaml</DependentUpon>
