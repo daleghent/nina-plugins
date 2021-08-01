@@ -41,6 +41,10 @@
 
             <GroupBox Header="MQTT">
                 <StackPanel Orientation="Vertical">
+                    <TextBlock VerticalAlignment="Center" Margin="0,5,0,5">
+                        Website: <Hyperlink NavigateUri="https://mqtt.org/" RequestNavigate="Hyperlink_RequestNavigate">https://mqtt.org/</Hyperlink>
+                    </TextBlock>
+
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
                         <TextBlock
                             VerticalAlignment="Center"
