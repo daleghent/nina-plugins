@@ -62,7 +62,7 @@ namespace DaleGhent.NINA.GroundStation.Mqtt {
 
             var discopts = new MqttClientDisconnectOptions();
 
-            Logger.Debug($"Mqtt: Publishing message to {MqttBrokerHost}:{MqttBrokerPort}, UseTLS={MqttBrokerUseTls}, Topic={topic}");
+            Logger.Debug($"Publishing message to {MqttBrokerHost}:{MqttBrokerPort}, UseTLS={MqttBrokerUseTls}, Topic={topic}");
 
             try {
                 await mqttClient.ConnectAsync(opts, ct);
