@@ -1,0 +1,63 @@
+﻿<!--
+    Copyright Dale Ghent <daleg@elemental.org>
+
+    This Source Code Form is subject to the terms of the Mozilla Public
+    License, v. 2.0. If a copy of the MPL was not distributed with this
+    file, You can obtain one at http://mozilla.org/MPL/2.0/
+-->
+<ResourceDictionary
+    x:Class="DaleGhent.NINA.PlaneWaveTools.WaitForCooledMirror.WaitForCooledMirrorTemplate"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ninactrl="clr-namespace:NINACustomControlLibrary;assembly=NINACustomControlLibrary"
+    xmlns:local="clr-namespace:DaleGhent.NINA.PlaneWaveTools.WaitForCooledMirror"
+    xmlns:util="clr-namespace:DaleGhent.NINA.PlaneWaveTools.Utility"
+    xmlns:mini="clr-namespace:NINA.View.Sequencer.MiniSequencer;assembly=NINA.Sequencer"
+    xmlns:nina="clr-namespace:NINA.View.Sequencer;assembly=NINA.Sequencer">
+
+    <GeometryGroup x:Key="ThermometerSVG">
+        <PathGeometry Figures="M 179.119,0.34259L 42.2814,0.34259L 42.2814,278.948C 15.6707,299.104 1.52588e-005,330.38 1.52588e-005,363.973C 1.52588e-005,422.812 47.8533,470.667 106.692,470.667C 165.525,470.667 213.385,422.812 213.385,363.973C 213.385,334.025 200.957,305.817 179.109,285.624L 179.109,0.34259M 187.869,363.973C 187.869,408.733 151.457,445.156 106.692,445.156C 61.9213,445.156 25.504,408.733 25.504,363.973C 25.504,336.645 39.1667,311.307 62.0614,296.187L 67.7853,292.427L 67.7853,25.8533L 153.615,25.8533L 153.615,297.437L 158.255,301.26C 177.093,316.765 187.869,339.609 187.869,363.973 Z " />
+        <PathGeometry Figures="M 135.515,307.052L 135.515,107.161L 86.8947,107.161L 86.8947,304.249C 61.9053,312.927 43.8747,336.421 43.8747,364.369C 43.8747,399.645 72.468,428.265 107.776,428.265C 143.052,428.265 171.671,399.645 171.671,364.369C 171.661,339.083 156.837,317.411 135.515,307.052 Z " />
+        <PathGeometry Figures="M 316.869,70.0933L 316.869,25.8533L 292.156,25.8533L 292.156,70.0933L 242.333,70.0933L 242.333,94.8066L 292.156,94.8066L 292.156,142.239L 316.869,142.239L 316.869,94.8066L 358.719,94.8066L 358.719,70.0933" />
+        <PathGeometry Figures="M 242.333,242.676L 358.719,242.676L 358.719,267.389L 242.333,267.389L 242.333,242.676 Z " />
+    </GeometryGroup>
+
+    <DataTemplate DataType="{x:Type local:WaitForCooledMirror}">
+        <nina:SequenceBlockView DataContext="{Binding}">
+            <nina:SequenceBlockView.SequenceItemContent>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="Temperature source" />
+                    <ComboBox
+                        MinWidth="40"
+                        Margin="5,0,0,0"
+                        VerticalAlignment="Center"
+                        ItemsSource="{Binding Source={util:EnumBindingSource {x:Type util:AmbientTempSourceEnum}}}"
+                        SelectedItem="{Binding AmbientTempSource}" />
+
+                    <TextBlock VerticalAlignment="Center" Margin="10,0,0,0" Text="|" />
+
+                    <TextBlock VerticalAlignment="Center" Margin="10,0,0,0" Text="Allowance" />
+                    <ninactrl:UnitTextBox
+                        MinWidth="40"
+                        Margin="5,0,0,0"
+                        MaxLines="1"
+                        Unit="°C"
+                        Text="{Binding MaxAmbientDeltaT}" />
+
+                </StackPanel>
+            </nina:SequenceBlockView.SequenceItemContent>
+        </nina:SequenceBlockView>
+    </DataTemplate>
+
+    <DataTemplate x:Key="DaleGhent.NINA.PlaneWaveTools.DeltaT.DeltaTControl_Mini">
+        <mini:MiniSequenceItem>
+            <mini:MiniSequenceItem.SequenceItemContent>
+                <StackPanel Orientation="Horizontal" Margin="10,0,0,0">
+                    <TextBlock VerticalAlignment="Center" Text="{Binding AmbientTempSource}" />
+                    <TextBlock VerticalAlignment="Center" Margin="5,0,5,0" Text="=" />
+                    <TextBlock VerticalAlignment="Center" Text="{Binding MaxAmbientDeltaT}" />
+                </StackPanel>
+            </mini:MiniSequenceItem.SequenceItemContent>
+        </mini:MiniSequenceItem>
+    </DataTemplate>
+</ResourceDictionary>
