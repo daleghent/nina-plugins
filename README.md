@@ -1,6 +1,6 @@
 # N.I.N.A. plugins by Dale Ghent
 
-This is **former** repository is of my plugins for [N.I.N.A.](https://nighttime-imaging.eu/)
+This is the **former** repository of my [N.I.N.A.](https://nighttime-imaging.eu/) plugins.
 
 They have been migrated into separate repositories to manage them easier. You can find the new repos here:
 
